@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>米国の富の格差（実質値）</title>
+<meta name="description" content="FRB Distributional Financial Accounts による米国家計純資産：上位1%と下位50%、2000–2026年、実質値（2026年第2四半期ドル）">
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1b;--muted:#6b6a65;--grid:#dcdad3;--top:#d98a2b;--bot:#2f86c9;--card:#fff;--line:#e7e5de}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--fg:#ecebe6;--muted:#a3a19a;--grid:#3a3936;--top:#f0a64e;--bot:#62b0ec;--card:#1f1f1d;--line:#2e2d2a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 16px 64px}
+h1{font-size:clamp(1.6rem,4vw,2.2rem);line-height:1.3;margin:0 0 .4em;letter-spacing:.01em}
+.lede{color:var(--muted);margin:0 0 1.6em}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;margin:0 0 12px;font-size:.9rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{all:unset;cursor:pointer;padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--bot);outline-offset:-2px}
+.label{color:var(--muted);align-self:center}
+figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 8px 8px}
+svg{display:block;width:100%;height:auto;font-family:inherit}
+.axis text{fill:var(--muted);font-size:12px}
+.gridline{stroke:var(--grid);stroke-dasharray:3 4}
+.tip{position:fixed;pointer-events:none;background:var(--fg);color:var(--bg);font-size:.8rem;padding:6px 10px;border-radius:6px;opacity:0;transition:opacity .1s;white-space:nowrap}
+figcaption{font-size:.8rem;color:var(--muted);padding:8px 8px 4px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:24px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:1.4rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.82rem;color:var(--muted)}
+h2{font-size:1.15rem;margin:2.2em 0 .5em}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+.tablewrap{overflow-x:auto}
+code{font-size:.85em;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px;word-break:break-all}
+a{color:var(--bot)}
+li{margin:.3em 0}
+footer{margin-top:3em;font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>米国家計の純資産：上位1%と下位50%（実質値）</h1>
+<p class="lede">FRB「Distributional Financial Accounts（DFA）」の純資産を、物価指数で <strong>2026年第2四半期ドル</strong> に換算。2000年第1四半期〜<span id="last"></span>。</p>
+
+<div class="controls">
+  <span class="label">デフレーター</span>
+  <div class="seg" id="defl">
+    <button data-v="pce" aria-pressed="true">PCE価格指数</button>
+    <button data-v="cpi" aria-pressed="false">CPI-U</button>
+    <button data-v="nom" aria-pressed="false">名目</button>
+  </div>
+  <span class="label">表示</span>
+  <div class="seg" id="mode">
+    <button data-v="level" aria-pressed="true">総額</button>
+    <button data-v="share" aria-pressed="false">シェア</button>
+  </div>
+</div>
+
+<figure>
+  <svg id="chart" viewBox="0 0 800 460" role="img" aria-labelledby="ctitle"><title id="ctitle">上位1%と下位50%の純資産の推移</title></svg>
+  <figcaption id="cap"></figcaption>
+</figure>
+<div class="tip" id="tip"></div>
+
+<div class="stats" id="stats"></div>
+
+<h2>主な時点の値</h2>
+<div class="tablewrap"><table id="tbl"></table></div>
+
+<h2>データと方法</h2>
+<ul>
+<li><strong>純資産</strong>：FRB, <a href="https://www.federalreserve.gov/releases/z1/dataviz/dfa/">Distributional Financial Accounts</a>（<code>dfa-networth-levels.csv</code>、四半期末残高、百万ドル）。DFAは金融勘定（Z.1）の家計・非営利団体部門のバランスシートを、消費者金融調査（SCF）を用いて資産階層別に配分した統計。</li>
+<li><strong>上位1%</strong> は DFA の「Top 0.1%（TopPt1）」と「99–99.9th（RemainingTop1）」の合算。FRED の <a href="https://fred.stlouisfed.org/series/WFRBLT01026">WFRBLT01026</a> と全期間で一致。<strong>下位50%</strong> は「Bottom50」（FRED <a href="https://fred.stlouisfed.org/series/WFRBLB50107">WFRBLB50107</a>）。</li>
+<li><strong>デフレーター</strong>：PCE価格指数（<a href="https://fred.stlouisfed.org/series/PCEPI">PCEPI</a>、FRBの物価目標の基準）と、都市部全消費者CPI（<a href="https://fred.stlouisfed.org/series/CPIAUCSL">CPIAUCSL</a>）。いずれも季節調整済み月次。純資産は四半期末のストックなので、<strong>各四半期末月（3・6・9・12月）の指数</strong>で換算した。実質値 = 名目値 × P<sub>2026Q2</sub> / P<sub>t</sub>。</li>
+<li><strong>シェア</strong>：5階層（Top 0.1%, 99–99.9, 90–99, 50–90, Bottom 50%）の純資産合計に対する比率。デフレーターに依存しない。</li>
+<li>データ取得日：<span id="asof"></span>。DFAの直近四半期はSCF・金融勘定の改定により修正されうる。</li>
+</ul>
+
+<h2>読み方の注意</h2>
+<ul>
+<li>上位1%は約130万世帯、下位50%は約6,500万世帯。総額の差には人数差が含まれる。世帯あたりに換算すると差はさらに大きい（約50倍の人数差）。</li>
+<li>家計の資産価格（株式・不動産）は消費者物価とは別の動きをする。実質化は「消費財で測った購買力」への換算であり、資産価格の上昇自体を除去するものではない。</li>
+<li>DFAは家計部門全体の総額をSCFの分布で配分しているため、個票調査の年（3年ごと）の間は補間・推計を含む。</li>
+</ul>
+
+<p><a href="data.csv">data.csv</a>：本ページで使った四半期データ（兆ドル、名目・PCE実質・CPI実質、シェア、各期の物価指数）。</p>
+
+<footer>KKLab · 出典：Board of Governors of the Federal Reserve System; U.S. Bureau of Economic Analysis; U.S. Bureau of Labor Statistics（FRED経由）。NBC News "Rising wealth" の図を実質値で再構成。</footer>
+</main>
+
+<script>
+const D={"q":["2000Q1","2000Q2","2000Q3","2000Q4","2001Q1","2001Q2","2001Q3","2001Q4","2002Q1","2002Q2","2002Q3","2002Q4","2003Q1","2003Q2","2003Q3","2003Q4","2004Q1","2004Q2","2004Q3","2004Q4","2005Q1","2005Q2","2005Q3","2005Q4","2006Q1","2006Q2","2006Q3","2006Q4","2007Q1","2007Q2","2007Q3","2007Q4","2008Q1","2008Q2","2008Q3","2008Q4","2009Q1","2009Q2","2009Q3","2009Q4","2010Q1","2010Q2","2010Q3","2010Q4","2011Q1","2011Q2","2011Q3","2011Q4","2012Q1","2012Q2","2012Q3","2012Q4","2013Q1","2013Q2","2013Q3","2013Q4","2014Q1","2014Q2","2014Q3","2014Q4","2015Q1","2015Q2","2015Q3","2015Q4","2016Q1","2016Q2","2016Q3","2016Q4","2017Q1","2017Q2","2017Q3","2017Q4","2018Q1","2018Q2","2018Q3","2018Q4","2019Q1","2019Q2","2019Q3","2019Q4","2020Q1","2020Q2","2020Q3","2020Q4","2021Q1","2021Q2","2021Q3","2021Q4","2022Q1","2022Q2","2022Q3","2022Q4","2023Q1","2023Q2","2023Q3","2023Q4","2024Q1","2024Q2","2024Q3","2024Q4","2025Q1","2025Q2","2025Q3","2025Q4","2026Q1","2026Q2"],"Top1_nom":[11.6969,11.5158,11.5934,11.221,10.8871,11.2482,10.7264,11.2172,11.3322,11.0833,10.5326,10.7774,10.7498,11.4873,11.8019,12.4591,13.4246,13.6251,14.0411,14.776,14.9269,15.4372,15.9085,16.2525,17.16,17.1338,17.4943,18.0592,18.5287,18.8417,19.239,19.0381,18.4144,18.0766,17.2412,15.88,15.1969,15.4541,16.2586,16.2995,16.7469,16.4802,17.2732,17.977,18.4722,18.6696,17.8832,18.4238,19.2568,19.2512,19.9453,19.7083,20.7155,20.8956,21.6096,22.2716,22.9582,23.7838,23.9649,24.5784,25.1212,25.4363,24.93,25.4172,25.7952,26.4523,26.9924,27.0501,27.7712,28.4016,28.8341,29.681,29.8097,30.1344,30.8351,28.9129,30.908,31.6446,31.6064,32.6833,29.5172,32.2862,33.9145,36.9849,38.879,41.325,42.2383,43.7224,43.2751,40.1217,39.0352,39.8612,41.2357,42.9574,42.3552,44.3232,46.2465,47.0205,48.8639,49.2823,49.1168,51.5674,53.9419,54.7891,54.8295,60.313],"Top1_pce":[20.8631,20.4706,20.4704,19.7281,19.0176,19.5279,18.694,19.514,19.61,19.0631,18.0082,18.3573,18.1327,19.4109,19.7554,20.7806,22.223,22.3764,22.981,23.9752,24.0493,24.7725,25.0769,25.6318,26.8644,26.5623,27.0148,27.8445,28.2816,28.5483,28.9745,28.3689,27.238,26.3836,25.047,23.6324,22.5976,22.7879,23.8637,23.7602,24.3252,23.9273,24.998,25.8239,26.2767,26.3707,25.1223,25.8135,26.7775,26.7781,27.5568,27.1718,28.4425,28.6344,29.5194,30.2855,31.0898,32.0628,32.2538,33.1793,33.9512,34.198,33.5307,34.1933,34.6247,35.2713,35.8671,35.7969,36.5797,37.3235,37.6526,38.5967,38.4956,38.7224,39.4722,36.9096,39.3156,40.0912,39.9467,41.0804,37.1136,40.5957,42.3237,45.875,47.6296,49.8579,50.3665,51.1407,49.5838,45.1473,43.627,44.1493,45.2164,46.7733,45.7404,47.7254,49.257,49.9148,51.6033,51.6962,51.1604,53.348,55.4236,55.9198,55.2514,60.313],"Top1_cpi":[22.7487,22.2403,22.2097,21.3732,20.5605,21.0512,20.0295,21.0286,21.1133,20.5231,19.3739,19.7152,19.4401,20.8645,21.2045,22.3369,23.862,23.9877,24.6028,25.6339,25.708,26.5045,26.6129,27.2845,28.5773,28.2367,28.6886,29.5712,30.0166,30.237,30.6802,29.9437,28.6911,27.6448,26.1967,24.9822,23.7841,23.9281,25.0489,24.9403,25.6242,25.234,26.3177,27.1172,27.5426,27.619,26.2465,26.9654,27.9896,28.016,28.7132,28.3467,29.6592,29.8961,30.7723,31.5562,32.3485,33.3419,33.561,34.5986,35.404,35.5946,34.9094,35.5522,36.0326,36.6211,37.221,37.076,37.8684,38.6851,38.9121,39.8335,39.7222,39.9244,40.6641,38.041,40.4244,41.2361,40.9908,42.0269,38.0371,41.7728,43.3809,46.9385,48.7993,50.7784,51.2837,51.7747,50.0286,45.2378,43.806,44.3613,45.4365,46.9921,45.8415,47.7439,49.2407,49.9531,51.633,51.6042,51.0802,53.3534,55.3265,55.8876,55.2072,60.313],"Bottom50_nom":[1.3464,1.3497,1.3775,1.3249,1.3278,1.3234,1.3189,1.2855,1.2999,1.2672,1.2585,1.2657,1.2249,1.2026,1.2303,1.2387,1.2662,1.3137,1.3006,1.3444,1.3666,1.3819,1.453,1.5146,1.483,1.491,1.4871,1.4672,1.415,1.3776,1.3275,1.1175,0.9531,0.9424,0.7407,0.5833,0.4194,0.425,0.3863,0.3358,0.3262,0.3071,0.3311,0.2491,0.257,0.2799,0.2908,0.2721,0.2935,0.3693,0.4011,0.491,0.4729,0.5704,0.67,0.6854,0.7266,0.8238,0.8415,0.8353,0.8833,0.9163,0.923,1.0079,1.0355,1.0418,1.1657,1.1525,1.2209,1.2999,1.3461,1.4025,1.493,1.5674,1.5947,1.5521,1.6173,1.6837,1.8061,1.8642,1.9301,2.211,2.4123,2.6998,2.9597,3.163,3.3192,3.4725,3.6431,3.7317,3.6193,3.4787,3.5928,3.6891,3.6554,3.6724,3.8017,3.8332,3.8405,3.8966,3.8754,3.9972,4.0791,4.1358,4.1531,4.278],"Bottom50_pce":[2.4015,2.3992,2.4323,2.3294,2.3194,2.2975,2.2986,2.2363,2.2494,2.1795,2.1517,2.1559,2.0661,2.0321,2.0594,2.066,2.096,2.1576,2.1287,2.1813,2.2018,2.2175,2.2905,2.3887,2.3217,2.3115,2.2964,2.2622,2.1599,2.0873,1.9992,1.6652,1.4098,1.3755,1.076,0.8681,0.6236,0.6267,0.5669,0.4895,0.4738,0.4459,0.4791,0.3578,0.3655,0.3953,0.4085,0.3812,0.4081,0.5137,0.5542,0.6769,0.6493,0.7816,0.9152,0.9321,0.984,1.1105,1.1326,1.1276,1.1938,1.2319,1.2415,1.3559,1.39,1.3891,1.549,1.5252,1.6081,1.7082,1.7578,1.8238,1.9281,2.0141,2.0414,1.9813,2.0572,2.1331,2.2827,2.3431,2.4269,2.78,3.0105,3.3488,3.6258,3.816,3.958,4.0617,4.1741,4.1992,4.0451,3.8529,3.9396,4.0168,3.9476,3.9543,4.0492,4.0692,4.0558,4.0875,4.0366,4.1352,4.1911,4.2212,4.185,4.278],"Bottom50_cpi":[2.6186,2.6066,2.6389,2.5236,2.5076,2.4767,2.4628,2.4098,2.4219,2.3464,2.3148,2.3154,2.2151,2.1843,2.2104,2.2208,2.2506,2.3129,2.279,2.3322,2.3537,2.3726,2.4308,2.5427,2.4697,2.4572,2.4387,2.4024,2.2924,2.2108,2.1169,1.7577,1.485,1.4412,1.1254,0.9177,0.6564,0.658,0.5951,0.5139,0.499,0.4702,0.5044,0.3757,0.3831,0.414,0.4268,0.3982,0.4266,0.5375,0.5775,0.7062,0.6771,0.816,0.954,0.9712,1.0239,1.1548,1.1785,1.1758,1.2449,1.2822,1.2925,1.4098,1.4465,1.4423,1.6075,1.5797,1.6648,1.7705,1.8166,1.8823,1.9895,2.0767,2.103,2.0421,2.1153,2.1941,2.3424,2.3971,2.4872,2.8606,3.0857,3.4264,3.7149,3.8865,4.0301,4.1121,4.2116,4.2076,4.0617,3.8714,3.9588,4.0355,3.9563,3.9558,4.0478,4.0723,4.0581,4.0802,4.0303,4.1357,4.1838,4.2188,4.1817,4.278],"Top1_share":[27.829,27.4,27.23,26.712,26.01,26.096,25.495,25.73,25.629,25.384,24.745,24.812,24.642,25.286,25.477,25.889,26.572,26.56,26.777,27.067,26.926,27.127,27.198,27.17,27.842,27.727,27.854,28.139,28.492,28.708,28.969,28.991,28.887,28.807,28.498,27.597,27.24,27.383,27.959,27.936,28.152,28.033,28.424,28.818,29.13,29.242,28.826,29.072,29.498,29.47,29.726,29.302,29.576,29.418,29.483,29.605,29.868,30.15,30.154,30.387,30.493,30.578,30.318,30.364,30.402,30.599,30.644,30.489,30.505,30.565,30.499,30.601,30.397,30.353,30.433,29.793,30.334,30.293,30.142,30.362,29.001,29.601,29.793,30.364,30.536,30.723,30.668,30.832,30.377,29.342,29.311,29.721,29.952,29.972,29.772,30.232,30.434,30.373,30.792,30.923,30.813,31.093,31.586,31.768,31.671,32.487],"Bottom50_share":[3.203,3.211,3.235,3.154,3.172,3.07,3.135,2.949,2.94,2.902,2.957,2.914,2.808,2.647,2.656,2.574,2.506,2.561,2.48,2.463,2.465,2.428,2.484,2.532,2.406,2.413,2.368,2.286,2.176,2.099,1.999,1.702,1.495,1.502,1.224,1.014,0.752,0.753,0.664,0.576,0.548,0.522,0.545,0.399,0.405,0.438,0.469,0.429,0.45,0.565,0.598,0.73,0.675,0.803,0.914,0.911,0.945,1.044,1.059,1.033,1.072,1.101,1.123,1.204,1.22,1.205,1.323,1.299,1.341,1.399,1.424,1.446,1.522,1.579,1.574,1.599,1.587,1.612,1.722,1.732,1.896,2.027,2.119,2.217,2.325,2.352,2.41,2.449,2.557,2.729,2.718,2.594,2.61,2.574,2.569,2.505,2.502,2.476,2.42,2.445,2.431,2.41,2.389,2.398,2.399,2.304],"PCEPI":[73.505,73.754,74.252,74.571,75.055,75.518,75.227,75.363,75.763,76.225,76.681,76.971,77.725,77.588,78.323,78.605,79.199,79.831,80.104,80.801,81.375,81.7,83.172,83.131,83.746,84.569,84.902,85.032,85.894,86.529,87.054,87.984,88.635,89.827,90.247,88.098,88.169,88.912,89.324,89.939,90.261,90.301,90.592,91.268,92.166,92.819,93.327,93.574,94.284,94.254,94.893,95.094,95.488,95.673,95.976,96.414,96.815,97.253,97.413,97.12,97.008,97.516,97.477,97.456,97.673,98.325,98.666,99.071,99.535,99.766,100.4,100.821,101.524,102.029,102.418,102.701,103.069,103.484,103.733,104.307,104.271,104.27,105.057,105.699,107.019,108.668,109.948,112.088,114.425,116.512,117.307,118.372,119.564,120.41,121.403,121.76,123.093,123.504,124.146,124.984,125.869,126.73,127.601,128.455,130.105,131.106],"CPIAUCSL":[171.0,172.2,173.6,174.6,176.1,177.7,178.1,177.4,178.5,179.6,180.8,181.8,183.9,183.1,185.1,185.5,187.1,188.9,189.8,191.7,193.1,193.7,198.8,198.1,199.7,201.8,202.8,203.1,205.288,207.234,208.547,211.445,213.448,217.463,218.877,211.398,212.495,214.79,215.861,217.347,217.353,217.199,218.275,220.472,223.046,224.806,226.597,227.223,228.807,228.524,231.015,231.221,232.282,232.445,233.544,234.719,236.028,237.231,237.477,236.252,235.976,237.657,237.498,237.761,238.08,240.222,241.176,242.637,243.892,244.163,246.435,247.805,249.577,251.018,252.182,252.767,254.277,255.213,256.43,258.63,258.076,257.042,259.997,262.045,264.961,270.654,273.91,280.845,287.674,294.957,296.349,298.832,301.821,304.014,307.276,308.741,312.345,313.044,314.732,317.604,319.785,321.435,324.245,326.031,330.293,332.568]};
+const ASOF="2026-10-12";
+const n=D.q.length, base=D.q[n-1];
+let defl="pce", mode="level";
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+const W=800,H=460,m={l:56,r:96,t:16,b:36};
+const qx=q=>+q.slice(0,4)+(+q.slice(5)-1)/4+0.25;
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+const svg=$("#chart");
+function series(){
+  if(mode==="share")return{t:D.Top1_share,b:D.Bottom50_share,unit:"%",fmt:v=>v.toFixed(1)+"%"};
+  return{t:D["Top1_"+defl],b:D["Bottom50_"+defl],unit:"兆ドル",fmt:v=>"$"+v.toFixed(2)+"T"};
+}
+function nice(max){const s=[5,10,20];for(const st of s)if(max/st<=7)return st;return 20}
+function draw(){
+  svg.querySelectorAll(":scope > :not(title)").forEach(e=>e.remove());
+  const S=series(), ymax=Math.max(...S.t)*1.06, step=nice(ymax), top=Math.ceil(ymax/step)*step;
+  const x0=2000,x1=qx(base)+0.25;
+  const X=v=>m.l+(v-x0)/(x1-x0)*(W-m.l-m.r), Y=v=>H-m.b-v/top*(H-m.t-m.b);
+  const g=el("g",{class:"axis"});
+  for(let v=0;v<=top;v+=step){
+    el("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),class:"gridline"},g);
+    el("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end"},g).textContent=mode==="share"?v+"%":(v?v+"T":"0");
+  }
+  for(let yr=2000;yr<=2025;yr+=5){el("text",{x:X(yr),y:H-m.b+22,"text-anchor":"middle"},g).textContent=yr}
+  el("line",{x1:m.l,x2:W-m.r,y1:H-m.b,y2:H-m.b,stroke:css("--muted"),"stroke-width":1},g);
+  const path=arr=>arr.map((v,i)=>(i?"L":"M")+X(qx(D.q[i])).toFixed(1)+","+Y(v).toFixed(1)).join("");
+  el("path",{d:path(S.t),fill:"none",stroke:css("--top"),"stroke-width":2.4,"stroke-linejoin":"round"});
+  el("path",{d:path(S.b),fill:"none",stroke:css("--bot"),"stroke-width":2.8,"stroke-linejoin":"round"});
+  const lx=X(qx(base))+8;
+  const lt=el("text",{x:lx,y:Y(S.t[n-1])+4,fill:css("--top"),"font-size":13,"font-weight":600});lt.textContent="上位1%";
+  const lb=el("text",{x:lx,y:Math.min(Y(S.b[n-1])+4,H-m.b-4),fill:css("--bot"),"font-size":13,"font-weight":600});lb.textContent="下位50%";
+  const cur=el("line",{y1:m.t,y2:H-m.b,stroke:css("--muted"),"stroke-width":1,opacity:0});
+  const dt=el("circle",{r:4,fill:css("--top"),opacity:0}), db=el("circle",{r:4,fill:css("--bot"),opacity:0});
+  const tip=$("#tip");
+  const ov=el("rect",{x:m.l,y:m.t,width:W-m.l-m.r,height:H-m.t-m.b,fill:"transparent"});
+  function move(ev){
+    const r=svg.getBoundingClientRect(), px=(ev.clientX-r.left)*W/r.width;
+    const yr=x0+(px-m.l)/(W-m.l-m.r)*(x1-x0);
+    let i=Math.round((yr-2000-0.25)*4); i=Math.max(0,Math.min(n-1,i));
+    const cx=X(qx(D.q[i]));
+    cur.setAttribute("x1",cx);cur.setAttribute("x2",cx);cur.setAttribute("opacity",.5);
+    dt.setAttribute("cx",cx);dt.setAttribute("cy",Y(S.t[i]));dt.setAttribute("opacity",1);
+    db.setAttribute("cx",cx);db.setAttribute("cy",Y(S.b[i]));db.setAttribute("opacity",1);
+    tip.innerHTML=`<b>${D.q[i]}</b>　上位1% ${S.fmt(S.t[i])}　下位50% ${S.fmt(S.b[i])}`;
+    tip.style.opacity=1;
+    const tw=tip.offsetWidth; let lx=ev.clientX+14; if(lx+tw>innerWidth-8)lx=ev.clientX-tw-14;
+    tip.style.left=Math.max(8,lx)+"px"; tip.style.top=(ev.clientY-40)+"px";
+  }
+  function leave(){tip.style.opacity=0;[cur,dt,db].forEach(e=>e.setAttribute("opacity",0))}
+  ov.addEventListener("pointermove",move);ov.addEventListener("pointerdown",move);ov.addEventListener("pointerleave",leave);
+  const dname={pce:"PCE価格指数で実質化（2026年第2四半期ドル）",cpi:"CPI-Uで実質化（2026年第2四半期ドル）",nom:"名目ドル"}[defl];
+  $("#cap").textContent=mode==="share"?"全家計純資産に占めるシェア（%）。出典：FRB DFA。":"純資産、兆ドル、"+dname+"。出典：FRB DFA, BEA, BLS（FRED経由）。";
+  stats();table();
+}
+function stats(){
+  const k=mode==="share"?null:defl, i0=0, i1=n-1;
+  let h="";
+  if(mode==="share"){
+    h+=card((D.Top1_share[i1]-D.Top1_share[i0]).toFixed(1)+" pt","上位1%のシェア変化（"+D.Top1_share[i0].toFixed(1)+"% → "+D.Top1_share[i1].toFixed(1)+"%）");
+    h+=card((D.Bottom50_share[i1]-D.Bottom50_share[i0]).toFixed(1)+" pt","下位50%のシェア変化（"+D.Bottom50_share[i0].toFixed(1)+"% → "+D.Bottom50_share[i1].toFixed(1)+"%）");
+  }else{
+    const t=D["Top1_"+k],b=D["Bottom50_"+k];
+    h+=card("×"+(t[i1]/t[i0]).toFixed(2),"上位1%の倍率（2000Q1→"+base+"）");
+    h+=card("×"+(b[i1]/b[i0]).toFixed(2),"下位50%の倍率（2000Q1→"+base+"）");
+    h+=card("+$"+(t[i1]-t[i0]).toFixed(1)+"T","上位1%の増加額");
+    h+=card("+$"+(b[i1]-b[i0]).toFixed(1)+"T","下位50%の増加額");
+  }
+  $("#stats").innerHTML=h;
+}
+function card(v,l){return `<div class="stat"><b>${v}</b><span>${l}</span></div>`}
+function table(){
+  const pick=["2000Q1","2007Q4","2009Q2","2019Q4","2021Q4","2022Q3",base];
+  const sfx=mode==="share"?"share":defl;
+  let h="<tr><th>四半期</th><th>上位1%</th><th>下位50%</th><th>比率（上位/下位）</th></tr>";
+  pick.forEach(q=>{const i=D.q.indexOf(q);if(i<0)return;const t=D["Top1_"+sfx][i],b=D["Bottom50_"+sfx][i];
+    const f=mode==="share"?v=>v.toFixed(1)+"%":v=>"$"+v.toFixed(2)+"T";
+    h+=`<tr><td>${q}</td><td>${f(t)}</td><td>${f(b)}</td><td>${(t/b).toFixed(1)}</td></tr>`});
+  $("#tbl").innerHTML=h;
+}
+function wire(id,set){document.querySelectorAll(id+" button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(id+" button").forEach(x=>x.setAttribute("aria-pressed",x===b));set(b.dataset.v);
+  document.querySelector("#defl").style.opacity=mode==="share"?.45:1;draw()})}
+wire("#defl",v=>defl=v);wire("#mode",v=>mode=v);
+$("#last").textContent=base.replace("Q","年第")+"四半期";$("#asof").textContent=ASOF;
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw)}catch(e){}
+draw();
+</script>
+</body>
+</html>
