@@ -37,6 +37,8 @@ th:first-child,td:first-child{text-align:left}
 .deftable th,.deftable td{text-align:left;vertical-align:top;line-height:1.6}
 .deftable td:first-child{white-space:nowrap;color:var(--muted)}
 .deftable th:not(:first-child){min-width:220px}
+h3{font-size:1rem;margin:1.6em 0 .3em}
+.comptable{max-width:520px}
 .refs{font-size:.82rem;color:var(--muted)}
 code{font-size:.85em;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px;word-break:break-all}
 a{color:var(--bot)}
@@ -73,6 +75,42 @@ footer{margin-top:3em;font-size:.8rem;color:var(--muted)}
 
 <h2>主な時点の値</h2>
 <div class="tablewrap"><table id="tbl"></table></div>
+
+<h2 id="lessons">このグラフから読み取れる米国経済の教訓</h2>
+<p>DFAの資産・負債の内訳（名目、兆ドル）に分解すると、グラフの動きはおもに<strong>資産構成</strong>と<strong>レバレッジ</strong>の違いで説明できます。</p>
+
+<div class="tablewrap"><table class="comptable">
+<tr><th>資産に占める割合（2026Q2）</th><th>上位1%</th><th>下位50%</th></tr>
+<tr><td>株式・投資信託</td><td>53.5%</td><td>3.6%</td></tr>
+<tr><td>不動産</td><td>10.8%</td><td>46.9%</td></tr>
+<tr><td>耐久消費財</td><td>1.9%</td><td>21.1%</td></tr>
+<tr><td>非法人事業</td><td>14.4%</td><td>1.6%</td></tr>
+<tr><td>年金受給権（確定給付＋確定拠出）</td><td>5.3%</td><td>12.8%</td></tr>
+<tr><td>負債／資産</td><td>1.9%</td><td>58.4%</td></tr>
+</table></div>
+
+<h3>1. 富の格差の拡大は、ほぼ「株価」の話である</h3>
+<p>2000Q1→2026Q2に上位1%の純資産は48.6兆ドル増えました。そのうち<strong>28.0兆ドル（58%）が株式・投資信託</strong>によるもので、非法人事業が6.7兆ドル、不動産が5.3兆ドルと続きます。資産に占める株式の割合も40.9%から53.5%へ上がりました。一方、下位50%の株式保有は資産の3.6%にすぎません。これは、米国の富の格差の動きが所得の差よりも「株式中心の上位層」と「住宅中心の中間層」の資産価格の差で大きく説明できるとした <a href="https://doi.org/10.1086/708815">Kuhn, Schularick &amp; Steins（2020）</a> の結論と一致します。金融政策や金利の変化は、意図していなくても分配に影響します。ただし、DFAだけでは因果関係までは特定できません。</p>
+
+<h3>2. レバレッジは下位層の損失を増幅する</h3>
+<p>2007Q4→2009Q2の純資産の変化は、上位1%が−19%、下位50%が<strong>−62%</strong>でした。下位50%の資産総額の減少は約10%にとどまっていますが、負債／資産比率が81.5%から92.3%へ上がっていたため、純資産は6割減りました。上位1%の負債比率は3%前後です。住宅ローンによる持ち家は下位層の主な資産形成の手段ですが、同時に、住宅価格が下がったときに損失を何倍にも膨らませる仕組みでもあります。下位50%がPCE実質で2007年の水準を取り戻すまでには、約10年かかりました。</p>
+
+<h3>3. 2020年以降は、下位層が実際に改善した珍しい時期である</h3>
+<p>2019Q4→2021Q4に下位50%の純資産は+86%増え、負債比率は72.9%から58.4%へ下がりました。背景としては、コロナ禍の財政移転、住宅価格の上昇、そして低賃金層で賃金が相対的に上がったこと（<a href="https://www.nber.org/papers/w31010">Autor, Dube &amp; McGrew 2023</a> のいう「予期せぬ賃金格差の圧縮」）が考えられます。2022年の利上げ局面（2021Q4→2022Q3）では、上位1%が株価下落で−10.7%減った一方、下位50%は+4.2%増えました。同じマクロショックでも、借り手と株式の保有者とでは効果の向きが逆になりえます。</p>
+
+<h3>4. 富の変化は、生産や厚生の変化と同じではない</h3>
+<p>2026Q2の上位1%の+10%（+5.5兆ドル）は、そのほぼ全部が株式の時価上昇によるものです（+5.0兆ドル）。これは評価益であって、新たに生産されたものではありません。ストック（資産）の格差とフロー（所得・消費）の格差は別の指標です。資産価格が実体経済よりも速く上がる局面では、資産の格差が実体経済の格差以上に広がって見えます。</p>
+
+<h3>5. 提示の仕方で印象が大きく変わる</h3>
+<p>名目総額で見ると「上位は+48.6兆ドル、下位はほぼ横ばい」に見えます。実質総額で見ると、上位×2.89、下位×1.78（PCE）で、下位も増えています。シェアで見ると、上位は27.8%→32.5%、下位は3.2%→2.3%です。世帯あたりで見ると、約50倍の人数差が加わります。「格差が拡大した」という主張が、水準・伸び率・シェアのどれについての話なのかを分けて議論する必要があります。</p>
+
+<h3>政策論への含意（見解が分かれる点）</h3>
+<ul>
+<li><strong>総需要への影響：</strong><a href="https://www.nber.org/papers/w26941">Mian, Straub &amp; Sufi（2021）</a>の「富裕層の貯蓄過剰」仮説は、上位層への富の集中が低金利と家計債務の増加を生んだと主張します。一方で、因果の向きや国際的な資本移動の役割について反論もあります。</li>
+<li><strong>課税：</strong>富裕税や含み益への課税を支持する側は、教訓1を根拠に挙げます。反対する側は、資産の評価の難しさ、資本の国外流出、法的な制約を指摘しています。</li>
+<li><strong>下位層の資産形成：</strong>持ち家と確定拠出年金が主な経路です。ただし教訓2が示すとおり、持ち家を増やすことはレバレッジを増やすことと表裏一体です。</li>
+</ul>
+<p class="refs">データの限界：DFAは、家計全体の総額を3年ごとの調査（SCF）の分布で配分しているため、四半期ごとの階層間の動きには推計が含まれます。また、下位50%の資産の約2割は、価値が年々目減りする耐久消費財です。</p>
 
 <h2>データと方法</h2>
 <ul>
@@ -115,6 +153,14 @@ footer{margin-top:3em;font-size:.8rem;color:var(--muted)}
 <li>上位1%は約130万世帯、下位50%は約6,500万世帯。総額の差には人数差が含まれる。世帯あたりに換算すると差はさらに大きい（約50倍の人数差）。</li>
 <li>家計の資産価格（株式・不動産）は消費者物価とは別の動きをする。実質化は「消費財で測った購買力」への換算であり、資産価格の上昇自体を除去するものではない。</li>
 <li>DFAは家計部門全体の総額をSCFの分布で配分しているため、個票調査の年（3年ごと）の間は補間・推計を含む。</li>
+</ul>
+
+<h2>文献</h2>
+<ul class="refs">
+<li>Kuhn, M., Schularick, M., &amp; Steins, U. I. (2020). Income and Wealth Inequality in America, 1949–2016. <i>Journal of Political Economy</i>, 128(9). <a href="https://doi.org/10.1086/708815">doi:10.1086/708815</a></li>
+<li>Mian, A., Straub, L., &amp; Sufi, A. (2021). The Saving Glut of the Rich. NBER Working Paper 26941. <a href="https://www.nber.org/papers/w26941">nber.org/papers/w26941</a></li>
+<li>Autor, D., Dube, A., &amp; McGrew, A. (2023). The Unexpected Compression: Competition at Work in the Low Wage Labor Market. NBER Working Paper 31010. <a href="https://www.nber.org/papers/w31010">nber.org/papers/w31010</a></li>
+<li>Johnson, N. (2017). A Comparison of PCE and CPI: Methodological Differences in U.S. Inflation Calculation and Their Implications. BLS. <a href="https://www.bls.gov/osmr/research-papers/2017/st170010.htm">bls.gov</a></li>
 </ul>
 
 <p><a href="data.csv">data.csv</a>：本ページで使った四半期データ（兆ドル、名目・PCE実質・CPI実質、シェア、各期の物価指数）。</p>
