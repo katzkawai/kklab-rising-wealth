@@ -34,6 +34,10 @@ table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:
 th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
 th:first-child,td:first-child{text-align:left}
 .tablewrap{overflow-x:auto}
+.deftable th,.deftable td{text-align:left;vertical-align:top;line-height:1.6}
+.deftable td:first-child{white-space:nowrap;color:var(--muted)}
+.deftable th:not(:first-child){min-width:220px}
+.refs{font-size:.82rem;color:var(--muted)}
 code{font-size:.85em;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px;word-break:break-all}
 a{color:var(--bot)}
 li{margin:.3em 0}
@@ -74,10 +78,37 @@ footer{margin-top:3em;font-size:.8rem;color:var(--muted)}
 <ul>
 <li><strong>純資産</strong>：FRB, <a href="https://www.federalreserve.gov/releases/z1/dataviz/dfa/">Distributional Financial Accounts</a>（<code>dfa-networth-levels.csv</code>、四半期末残高、百万ドル）。DFAは金融勘定（Z.1）の家計・非営利団体部門のバランスシートを、消費者金融調査（SCF）を用いて資産階層別に配分した統計。</li>
 <li><strong>上位1%</strong> は DFA の「Top 0.1%（TopPt1）」と「99–99.9th（RemainingTop1）」の合算。FRED の <a href="https://fred.stlouisfed.org/series/WFRBLT01026">WFRBLT01026</a> と全期間で一致。<strong>下位50%</strong> は「Bottom50」（FRED <a href="https://fred.stlouisfed.org/series/WFRBLB50107">WFRBLB50107</a>）。</li>
-<li><strong>デフレーター</strong>：PCE価格指数（<a href="https://fred.stlouisfed.org/series/PCEPI">PCEPI</a>、FRBの物価目標の基準）と、都市部全消費者CPI（<a href="https://fred.stlouisfed.org/series/CPIAUCSL">CPIAUCSL</a>）。いずれも季節調整済み月次。純資産は四半期末のストックなので、<strong>各四半期末月（3・6・9・12月）の指数</strong>で換算した。実質値 = 名目値 × P<sub>2026Q2</sub> / P<sub>t</sub>。</li>
+<li><strong>デフレーター</strong>：PCE価格指数（<a href="https://fred.stlouisfed.org/series/PCEPI">PCEPI</a>、FRBの物価目標の基準）と、都市部全消費者CPI（<a href="https://fred.stlouisfed.org/series/CPIAUCSL">CPIAUCSL</a>）。いずれも季節調整済み月次。純資産は四半期末のストックなので、<strong>各四半期末月（3・6・9・12月）の指数</strong>で換算した。実質値 = 名目値 × P<sub>2026Q2</sub> / P<sub>t</sub>。両指数の違いは<a href="#deflators">下記</a>。</li>
 <li><strong>シェア</strong>：5階層（Top 0.1%, 99–99.9, 90–99, 50–90, Bottom 50%）の純資産合計に対する比率。デフレーターに依存しない。</li>
 <li>データ取得日：<span id="asof"></span>。DFAの直近四半期はSCF・金融勘定の改定により修正されうる。</li>
 </ul>
+
+<h2 id="deflators">2つのデフレーター：PCE価格指数とCPI-U</h2>
+<p>どちらも米国の消費者物価を測る指数ですが、作成機関・対象範囲・ウエイト・算式が異なるため、長期では上昇率に差が出ます。本ページでは、FRBの物価目標の基準であるPCE価格指数を主系列とし、比較のためにCPI-Uでも換算しています。</p>
+<div class="tablewrap"><table class="deftable">
+<tr><th></th><th>PCE価格指数（PCEPI）</th><th>CPI-U（CPIAUCSL）</th></tr>
+<tr><td>作成機関</td><td>商務省経済分析局（BEA）。国民所得・生産勘定（NIPA）の一部</td><td>労働省労働統計局（BLS）</td></tr>
+<tr><td>対象</td><td>米国居住者の個人消費支出。家計に代わって支払われる支出（雇用主負担の医療保険料、メディケア・メディケイドなど）も含む</td><td>都市部の全消費者（人口の9割超）が自ら支払う支出</td></tr>
+<tr><td>ウエイトの出所</td><td>企業側の統計にもとづくNIPAの消費支出推計</td><td>家計への調査（消費者支出調査：CE）</td></tr>
+<tr><td>指数算式</td><td>連鎖型フィッシャー指数。品目間の代替を毎期反映</td><td>品目内の基本指数は主に幾何平均（1999年1月以降）、上位の集計は固定バスケット型</td></tr>
+<tr><td>基準</td><td>2017年＝100</td><td>1982–84年＝100</td></tr>
+<tr><td>改定</td><td>基礎統計の更新や方法変更に応じて過去に遡って改定</td><td>原系列は公表時に確定。季節調整済み系列は季節調整係数の見直しで改定される</td></tr>
+<tr><td>主な用途</td><td>FOMCの2%物価目標の基準（2012年1月採択、2026年1月再確認）</td><td>契約・賃金・公的制度の物価連動に広く利用（社会保障給付の調整には同じBLSのCPI-Wを使用）</td></tr>
+</table></div>
+<p>BLSの<a href="https://www.bls.gov/osmr/research-papers/2017/st170010.htm">Johnson（2017）</a>は、両指数の差を次の4つの効果に分けて整理しています。</p>
+<ul>
+<li><strong>算式効果</strong>：連鎖フィッシャー型か、固定バスケット型か。</li>
+<li><strong>ウエイト効果</strong>：企業側データか、家計調査か。CPIでは住居費のウエイトが大きい。</li>
+<li><strong>範囲効果</strong>：家計に代わって支払われる支出を含むかどうか。</li>
+<li><strong>その他</strong>：季節調整の違いなど。</li>
+</ul>
+<p>本ページの換算期間（2000年3月→2026年6月、26.25年）について、物価の累積上昇率を比べると次のとおりです。</p>
+<ul>
+<li>PCE価格指数：78.4%（年率2.23%）</li>
+<li>CPI-U：94.5%（年率2.57%）</li>
+</ul>
+<p>年率で約0.34ポイントの差があります。そのため、2000年時点の実質値はCPI-Uで換算したほうが約9%大きくなり、2000年からの実質伸び率はPCEで換算したほうが大きくなります（上位1%で×2.89と×2.65、下位50%で×1.78と×1.63）。どちらで換算しても、上位1%の伸びが下位50%を上回るという結論は変わりません。</p>
+<p class="refs">出典：BEA・BLS（<a href="https://fred.stlouisfed.org/series/PCEPI">FRED PCEPI</a>、<a href="https://fred.stlouisfed.org/series/CPIAUCSL">FRED CPIAUCSL</a>）、<a href="https://www.bls.gov/cpi/questions-and-answers.htm">BLS CPI Questions and Answers</a>、<a href="https://www.federalreserve.gov/monetarypolicy/files/FOMC_LongerRunGoals.pdf">FOMC Statement on Longer-Run Goals and Monetary Policy Strategy</a>。</p>
 
 <h2>読み方の注意</h2>
 <ul>
